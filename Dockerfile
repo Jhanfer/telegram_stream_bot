@@ -1,7 +1,7 @@
 # Este Dockerfile es usado para desplegar un contenedor simple
 
 # Se establece la versión de Python a utilizar
-FROM python:3.12
+FROM python:3.11
 
 
 # Creando un directorio de trabajo llamado "/app"
@@ -25,5 +25,6 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-CMD ["supervisord"]
+CMD ["sh", "-c", "while true; do python telegram_bot.py; done"]
+HEALTHCHECK --interval=5m --timeout=3s --start-period=5s CMD curl -f http://localhost:8080/health || exit 1
 
