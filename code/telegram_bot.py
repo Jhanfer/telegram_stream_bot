@@ -1,7 +1,7 @@
 import dotenv
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
 from twitch_api import TwitchAPI
 import asyncio
 
@@ -38,5 +38,5 @@ async def stream_alert(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     app.add_handler(CommandHandler("start", stream_alert))
-    app.run_polling()
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
     

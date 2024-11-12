@@ -13,7 +13,7 @@ class TwitchAPI:
     #cargamos las variables del entorno previamente puestas en ".env".
     CLIENT_ID=os.environ.get("TWITCH_CLIENT_ID")
     CLIENT_SECRET=os.environ.get("TWITCH_CLIENT_SECRET")
-
+    
     #definimos el constructor de la clase
     def __init__(self, user) -> None:
         self.token=None
