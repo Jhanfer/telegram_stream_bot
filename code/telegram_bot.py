@@ -1,42 +1,59 @@
 import dotenv
 import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater, Application
 from twitch_api import TwitchAPI
 import asyncio
 
-api = TwitchAPI("unweonmais")
+
+contadores = {
+    "contador1":0,
+    "contador2":0
+}
 
 
-dotenv.load_dotenv()
-API_KEY = os.environ.get("API_KEY")
-app = ApplicationBuilder().token(API_KEY).build()
-
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Hola {update.effective_user.first_name}! Todo bien pa?')
-
-
+async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(f"Todo bien, {update.effective_user.first_name} pa? ")
 
 
 
-async def stream_alert(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(f'Hola {update.effective_user.first_name}! Todo bien pa? andamo iniciando el bot')
-    pasada = True
-    while True:
-        if api.is_live():
-            if not context.user_data.get('sent_message', False):
-                await update.message.reply_text(f"{api.user} está en directo! \n{api.get_url()}")
-                context.user_data['sent_message'] = True
-            #await asyncio.sleep(5)  # Esperar un minuto antes de volver a verificar
-        else:
-            context.user_data['sent_message'] = False
-            if pasada == True:
-                pasada = False
-                await update.message.reply_text(f"Ahora mismo el papu \"{api.user}\" no está en directo")
-            continue
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id:
+        context.job_queue.run_repeating(stream_alert, interval=2, first=0, chat_id=chat_id)
+
+    if contadores["contador1"] < 1:
+        contadores["contador1"] += 1
+        await update.message.reply_text(f'Hola {update.effective_user.first_name}! Todo bien pa? andamo iniciando el bot')
+    else:
+        await update.message.reply_text(f'Ya estoy iniciado.')
+
+
+
+
+async def stream_alert(context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = context.job.chat_id 
+    if chat_id:
+        data = api.get_data()
+        if api.is_live() and data and contadores["contador1"] < 1:
+            contadores["contador1"] += 1
+            await context.bot.send_message(chat_id,f"{api.user} está en vivo! \n{data["title"]} \n{data["game_name"]} \n{data["viewer_count"]} \nhttps://twitch.tv/{api.user}")
+        if not api.is_live() and contadores["contador1"] >= 0:
+            contadores["contador1"] = 0
 
 
 if __name__ == "__main__":
-    app.add_handler(CommandHandler("start", stream_alert))
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    api = TwitchAPI("Rubius")
+    dotenv.load_dotenv()
+    API_KEY = os.environ.get("API_KEY")
+
+    app = ApplicationBuilder().token(API_KEY).build()
     
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("hola", hola))
+
+
+    app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
+
+
+

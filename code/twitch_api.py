@@ -11,15 +11,32 @@ class TwitchAPI:
     dotenv.load_dotenv()
 
     #cargamos las variables del entorno previamente puestas en ".env".
-    CLIENT_ID=os.environ.get("TWITCH_CLIENT_ID")
-    CLIENT_SECRET=os.environ.get("TWITCH_CLIENT_SECRET")
+    CLIENT_ID:str = os.environ.get("TWITCH_CLIENT_ID")
+    CLIENT_SECRET:str = os.environ.get("TWITCH_CLIENT_SECRET")
     
     #definimos el constructor de la clase
     def __init__(self, user) -> None:
-        self.token=None
-        self.token_exp=0
-        self.title=None
+        self.__token = None
+        self.__token_exp = 0
+        self.title = None
         self.user = user
+        self.gen_token()
+
+    @property 
+    def token(self):
+        return self.__token
+
+    @property
+    def token_exp(self):
+        return self.__token_exp
+
+    @token.setter
+    def token(self, token):
+        self.__token = token
+    
+    @token_exp.setter
+    def token_exp(self, token_exp):
+        self.__token_exp = token_exp
 
     #función para generar los tokens de twitch
     def gen_token(self):
@@ -39,8 +56,8 @@ class TwitchAPI:
         #Accedemos al "expires_in" del json y le sumamos la hora del sistema. Guardamos esos datos en "token_expires"
         if response.status_code == 200:
             data=response.json()
-            self.token=data["access_token"]
-            self.token_exp=time.time() + data["expires_in"]
+            self.token = data["access_token"]
+            self.token_exp = time.time() + data["expires_in"]
         else:
             self.token=None
             self.token_exp=0
@@ -76,21 +93,28 @@ class TwitchAPI:
         else:
             return False
 
-    def get_title(self):
+    def get_data(self):
         if self.is_live() == False:
             return {"title":"No estoy en vivo","game_name":"Regresa pronto!"}
         else:
-            response=requests.get(
+            response = requests.get(
             f"https://api.twitch.tv/helix/streams?user_login={self.user}",
             headers={
                 "Client-Id":self.CLIENT_ID,
                 "Authorization":f"Bearer {self.token}"})
             
             if response.status_code == 200 and response.json()["data"]:
-                data=response.json()["data"]
+                data = response.json()["data"]
                 return data[0]
             else:
                 return {"title":"No estoy en vivo ahora","game_name":"Quédate al pendiente de mi canal de Twitch!"}
     
     def get_url(self):
         return f"https://twitch.tv/{self.user}"
+    
+
+
+
+if __name__ == "__main__":
+    api = TwitchAPI("thedanirep")
+    print(api.get_data())
