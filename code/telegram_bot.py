@@ -20,7 +20,7 @@ async def hola(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     if chat_id:
-        context.job_queue.run_repeating(stream_alert, interval=2, first=0, chat_id=chat_id)
+        context.job_queue.run_repeating(stream_alert, interval=5, first=0, chat_id=chat_id)
 
     if contadores["contador1"] < 1:
         contadores["contador1"] += 1
@@ -29,17 +29,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f'Ya estoy iniciado.')
 
 
-
+contador1 = {
+    "contador1":0,
+}
+estado_anterior = {"is_live": False}
 
 async def stream_alert(context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = context.job.chat_id 
     if chat_id:
         data = api.get_data()
-        if api.is_live() and data and contadores["contador1"] < 1:
-            contadores["contador1"] += 1
-            await context.bot.send_message(chat_id,f"{api.user} está en vivo! \n{data["title"]} \n{data["game_name"]} \n{data["viewer_count"]} \nhttps://twitch.tv/{api.user}")
-        if not api.is_live() and contadores["contador1"] >= 0:
-            contadores["contador1"] = 0
+        if api.is_live() == True and contador1["contador1"] < 1:
+            await context.bot.send_message(chat_id, f'{api.user} está en vivo! \n{data["title"]} \n{data["game_name"]} \n🔴{int(data["viewer_count"]):,.2f}🔴 \nhttps://twitch.tv/{api.user}')
+            contador1["contador1"] += 1
+
+        elif api.is_live() == False:
+            if contador1["contador1"] > 0 or estado_anterior["is_live"] == True:
+                contador1["contador1"] = 0
+                estado_anterior["is_live"] = False
+                await context.bot.send_message(chat_id, f'Ahora mismo {api.user} no está en vivo!')
+
 
 
 if __name__ == "__main__":
