@@ -1,4 +1,4 @@
-python-dotenv
-python-telegram-bot
-requests
-supervisor
+python-dotenv==1.0.1
+python-telegram-bot==20.3
+requests==2.31.0
+supervisor==4.2.5
