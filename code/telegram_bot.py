@@ -15,26 +15,6 @@ API_KEY = os.environ.get("API_KEY")
 bot = telegram.Bot(token=API_KEY)
 
 
-class MyHandler(http.server.BaseHTTPRequestHandler):
-    def do_POST(self):
-        length = int(self.headers['Content-Length'])
-        body = self.rfile.read(length)
-        update = telegram.Update.de_json(body.decode('utf-8'), bot)
-
-        # Procesar la actualización (ej: responder a un mensaje)
-        if update.message:
-            chat_id = update.message.chat.id
-            message_text = update.message.text
-            bot.send_message(chat_id=chat_id, text=f"Has dicho: {message_text}")
-
-        self.send_response(200)
-        self.end_headers()
-
-
-
-
-
-
 contadores = {
     "contador1":0,
     "contador2":0
@@ -81,17 +61,11 @@ async def stream_alert(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 if __name__ == "__main__":
     
-    with socketserver.TCPServer(("", 8080), MyHandler) as httpd:
-        print("serving at port", 8080)
+    app = ApplicationBuilder().token(API_KEY).build()
     
-        app = ApplicationBuilder().token(API_KEY).build()
-        
-        app.add_handler(CommandHandler("start", start))
-        app.add_handler(CommandHandler("hola", hola))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("hola", hola))
 
 
-        app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
-
-
-        httpd.serve_forever()
+    app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
 
