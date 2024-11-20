@@ -66,6 +66,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("hola", hola))
 
-
+    port = os.getenv("PORT", 8080)
+    
     app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
 
