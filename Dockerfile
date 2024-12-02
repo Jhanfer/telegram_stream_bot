@@ -24,6 +24,7 @@ RUN pip install --upgrade pip
 # Instalar los requerimientos sin caché
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r job_queue.txt
+RUN pip install --no-cache-dir -r webhooks.txt
 
 CMD ["python", "/app/code/telegram_bot.py"]
 HEALTHCHECK --interval=5m --timeout=3s --start-period=5s CMD curl -f http://localhost:8080/health || exit 1
