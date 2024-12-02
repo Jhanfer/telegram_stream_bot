@@ -3,9 +3,6 @@ import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Updater, Application
 from twitch_api import TwitchAPI
-import asyncio
-import http.server
-import socketserver
 import telegram
 
 
@@ -14,6 +11,7 @@ dotenv.load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 bot = telegram.Bot(token=API_KEY)
 
+WEBHOOK = os.environ.get("NGROK_URL")
 
 contadores = {
     "contador1":0,
@@ -66,7 +64,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("hola", hola))
 
-    port = os.getenv("PORT", 8080)
-    
-    app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
+    app.run_webhook(port=8080, webhook_url=WEBHOOK, allowed_updates=True)
+    #app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
 
