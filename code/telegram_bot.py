@@ -11,7 +11,7 @@ dotenv.load_dotenv()
 API_KEY = os.environ.get("API_KEY")
 bot = telegram.Bot(token=API_KEY)
 
-WEBHOOK = os.environ.get("NGROK_URL")
+WEBHOOK = os.environ.get("RENDER_DEPLOY_HOOK_URL")
 
 contadores = {
     "contador1":0,
