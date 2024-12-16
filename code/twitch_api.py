@@ -22,6 +22,9 @@ class TwitchAPI:
         self.user = user
         self.gen_token()
 
+    def __str__(self):
+        return f"Username: {self.user}"
+
     @property 
     def token(self):
         return self.__token
@@ -71,7 +74,7 @@ class TwitchAPI:
             return False
 
     #Evalúa si el token está expirado o si no se ha generado y llama a la función para que lo genere
-    def is_live(self) -> bool:
+    async def is_live(self) -> bool:
         
         if not self.token_valid():
             self.gen_token()
@@ -93,8 +96,8 @@ class TwitchAPI:
         else:
             return False
 
-    def get_data(self):
-        if self.is_live() == False:
+    async def get_data(self):
+        if await self.is_live() == False:
             return {"title":"No estoy en vivo","game_name":"Regresa pronto!"}
         else:
             response = requests.get(
