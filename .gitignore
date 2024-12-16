@@ -7,3 +7,5 @@ assets/external/
 .env
 .bot
 test.py
+requirements.txt
+webhooks.txt

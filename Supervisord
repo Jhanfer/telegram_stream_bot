@@ -1,5 +1,0 @@
-[program:telegram_bot]
-command=/path/to/your/python/interpreter /path/to/your/telegram_bot.py
-directory=/path/to/your/project
-autostart=true
-autorestart=true
