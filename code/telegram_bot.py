@@ -18,39 +18,34 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     init[chat_id] = True
     await update.message.reply_text(f"Gracias por usarme :). Usa \"\\set_username *username*\" para añadir un nuevo nombre de usuario de Twitch.")
 
+
 async def set_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     if chat_id in init and  context.args:    
             username = context.args[0] 
             context.user_data.setdefault("data",{}) 
+
             if not chat_id in context.user_data["data"]: 
                 context.user_data["data"][chat_id] = username 
+                estado[chat_id] = False 
+                await update.message.reply_text(f"Ahora seguiré a \"{context.user_data["data"][chat_id]}\".") 
+                job_name = f"{context.user_data["data"][chat_id]}_{chat_id}"
+                await star_job_queue(job_queue_name=job_name, context=context, chat_id=chat_id) 
+                await context.bot.send_message(chat_id,f"Inicializando el bot.")
 
+            else:
+                await stop_job_queue(
+                    data=context.user_data["data"],
+                    context=context,
+                    chat_id=chat_id
+                ) 
+
+                context.user_data["data"][chat_id] = username
+                job_name = f"{context.user_data["data"][chat_id]}_{chat_id}"
+                
                 estado[chat_id] = False
 
-                await update.message.reply_text(f"Ahora seguiré a \"{context.user_data["data"][chat_id]}\".") 
-
-                job_queue_name = f"{context.user_data["data"][chat_id]}_{chat_id}" 
-
-                while True:
-                    try:
-                        context.job_queue.run_repeating(stream_alert, 
-                                                        interval=20, 
-                                                        first=2, 
-                                                        chat_id=chat_id, 
-                                                        data=context.user_data, 
-                                                        name=job_queue_name)
-                        await context.bot.send_message(chat_id,f"Inicializando el bot.")
-                        break
-                    except httpx.RemoteProtocolError as e:
-                        print(f"Error de protocolo remoto: {e}. Reintentando.")
-                        asyncio.sleep(10)
-                        continue
-
-                    except Exception as e:
-                        print(f"Ha ocurrido un errror: {e}. Reintentando.")
-            else:
-                context.user_data["data"][chat_id] = username
+                await star_job_queue(job_queue_name=job_name, context=context, chat_id=chat_id) 
                 await context.bot.send_message(chat_id,f"Asignando nuevo nombre de usuario.")
     else:
         if chat_id not in init:
@@ -59,17 +54,35 @@ async def set_username(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(update.message.chat_id, "Coloque un nombre de usuario.")
 
 
-async def stop_job_queue(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def star_job_queue(context, chat_id,job_queue_name):
+    """Inicializa la cola de trabajos"""
+    context.job_queue.run_repeating(
+        stream_alert, 
+        interval=20, 
+        first=2, 
+        chat_id=chat_id, 
+        data=context.user_data, 
+        name=job_queue_name
+    )
+
+async def stop_job_queue(data, context, chat_id):
+    """Detiene cualquier trabajo que se le pase"""
+    print(f"{data.get(chat_id)}_{chat_id}")
+    job_name = f"{data.get(chat_id)}_{chat_id}"
+    current_job = context.job_queue.get_jobs_by_name(job_name)
+    print(f"Deteniendo trabajo: {current_job}")
+    if not job_name:
+        await context.bot.send_message(chat_id,f"No se han encontrado tareas activas.")
+    for job in current_job:
+        job.schedule_removal()
+
+
+async def stop_job_queue_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Detener los trabajos desde chat"""
     chat_id = update.message.chat_id
     data = context.user_data.get("data")
     if data:
-        job_name = f"{data.get(chat_id)}_{chat_id}"
-        current_job = context.job_queue.get_jobs_by_name(job_name)
-        print(f"Deteniendo trabajo: {current_job}")
-        if not job_name:
-            await context.bot.send_message(chat_id,f"No se han encontrado tareas activas.")
-        for job in current_job:
-            job.schedule_removal()
+        await stop_job_queue(data, context, chat_id)
         await context.bot.send_message(chat_id,f"Tareas detenidas.")
     else:
         await context.bot.send_message(chat_id,f"No se han encontrado tareas activas.")
@@ -94,13 +107,13 @@ async def stream_alert(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 if __name__ == "__main__":
+
     try:
         app = ApplicationBuilder().token(API_KEY).build()
         app.add_handler(CommandHandler("start", start))
         app.add_handler(CommandHandler("set_username", set_username))
-        app.add_handler(CommandHandler("stop", stop_job_queue))
+        app.add_handler(CommandHandler("stop", stop_job_queue_command))
         app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
-    except KeyboardInterrupt:
+    except httpx.RemoteProtocolError:
         app.stop_running()
-
-
+        app.run_polling(allowed_updates=Update.ALL_TYPES, close_loop=True,drop_pending_updates=True)
