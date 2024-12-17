@@ -2,10 +2,10 @@
 *.py[cod]
 .web
 __pycache__
-__pycache__/
+__pycache__
 assets/external/
 .env
-.bot
+.bot/*
 test.py
 requirements.txt
 webhooks.txt
