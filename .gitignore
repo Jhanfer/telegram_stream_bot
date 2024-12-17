@@ -9,3 +9,5 @@ assets/external/
 test.py
 requirements.txt
 webhooks.txt
+job_queue.txt
+Dockerfile
