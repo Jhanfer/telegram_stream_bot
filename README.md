@@ -13,15 +13,41 @@ Este bot de Telegram está diseñado para interactuar con usuarios y gestionar a
 
 * Configuración Personalizada: El bot tiene la capacidad de gestionarse en distintos chats, esto permite que cada usuario pueda configurarlo y este va a respetar esas configuraciones por chat.
 
-### Dependencias necesarias: 
+---
+#### Ejecutar el script:
+
+- Clonar este repositorio usando:
+```
+$ git clone https://github.com/Jhanfer/telegram_stream_bot.git
+```
+- Dirigirse a la carpeta del repositorio y posteriormente a code:
+```
+$ cd telegram_stream_bot
+$ cd code
+```
+- Entrar al script y cambiar la variable "API_KEY" por su propia clave api obtenida en el [bot father](https://telegram.me/BotFather).
+
+- Ejecutar el script:
+```
+$ chmod +x telegram_bot.py #se le da permisos
+$ ./telegram_bot.py
+```
+
+#### Dependencias necesarias: 
 * python-telegram-bot == 20.3
 * python-telegram-bot[job-queue]
+
+> [!IMPORTANT]  
+> Se necesita tener una API KEY que se obtiene en el [bot father](https://telegram.me/BotFather) de telegram para poder ejecutar el script.
+
+---
 
 ---
 
 Este bot ha surgido como una idea de poder avisar sobre streams en twitch en # grupos o chats de telegram.
 
 He utilizado la api [python-telegram-bot](https://docs.python-telegram-bot.org/en/v21.7/index.html) y mi propia api de twitch. El bot se encuentra desplegado en [pthonanyware](https://www.pythonanywhere.com) por lo que puede presentar retrasos o lentitud de ejecución.
+
 
 ---
 #### Gracias por leer c: 
